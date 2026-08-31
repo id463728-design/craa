@@ -24,8 +24,11 @@ jobs:
       with:
         gradle-version: '9.3.1'
 
-    - name: Build Debug APK
-      run: gradle assembleDebug -Pandroid.injected.signing.store.file="" -Pandroid.injected.signing.store.password="" -Pandroid.injected.signing.key.alias="" -Pandroid.injected.signing.key.password=""
+    - name: Generate Dummy Keystore and Build APK
+      run: |
+        keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        gradle assembleDebug -Pandroid.injected.signing.store.file="debug.keystore" -Pandroid.injected.signing.store.password="android" -Pandroid.injected.signing.key.alias="androiddebugkey" -Pandroid.injected.signing.key.password="android"
+
 
 
     - name: Upload Finished APK
