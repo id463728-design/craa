@@ -1,0 +1,6 @@
+{
+  "name": "Endless Car Game",
+  "description": "An endless car racing game with 6 lanes, oncoming obstacles that speed up, power-ups like speed boosts and shields, and multi-colored cars from opposing directions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
