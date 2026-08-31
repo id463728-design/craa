@@ -27,22 +27,30 @@ jobs:
       with:
         gradle-version: '9.3.1'
 
-    - name: Force Drop Keystore to All Expected Paths and Build APK
+    - name: Compile and Secure Build
       run: |
-        # 1. Create a clean test credentials file in your project directory
+        # 1. Create a clean testing key store database locally
         keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
         
-        # 2. Place it in the directory where 'debugConfig' looks
+        # 2. Replicate dependencies for expected compilation profiles
         cp debug.keystore /home/runner/work/craa/craa/debug.keystore || true
-        
-        # 3. Create the daemon folder and place it where 'externalOverride' looks
         mkdir -p /home/runner/.gradle/daemon/9.3.1/
         cp debug.keystore /home/runner/.gradle/daemon/9.3.1/debug.keystore || true
         
-        # 4. Compile the application
+        # 3. Compile core build assets
         gradle assembleDebug
-
-
+        
+        # 4. Extract Android System paths to align the package layers
+        BUILD_TOOLS_DIR=$(dirname $(find /usr/local/lib/android/sdk/build-tools -name zipalign | head -n 1))
+        
+        # 5. Execute structural 4-byte index alignments
+        $BUILD_TOOLS_DIR/zipalign -v 4 app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/app-aligned.apk
+        
+        # 6. Apply cryptographic verification stamps directly onto the package
+        $BUILD_TOOLS_DIR/apksigner sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android --ks-key-alias androiddebugkey app/build/outputs/apk/debug/app-aligned.apk
+        
+        # 7. Finalize the replacement deployment asset
+        mv app/build/outputs/apk/debug/app-aligned.apk app/build/outputs/apk/debug/app-debug.apk
 
     - name: Upload Finished APK
       uses: actions/upload-artifact@v4.5.0
@@ -60,4 +68,3 @@ jobs:
         files: app/build/outputs/apk/debug/app-debug.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
