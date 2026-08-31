@@ -24,11 +24,11 @@ jobs:
       with:
         gradle-version: '9.3.1'
 
-    - name: Generate Dummy Keystore and Build APK
+    - name: Force Drop Keystore to System Daemon and Build APK
       run: |
-        keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-        gradle assembleDebug -Pandroid.injected.signing.store.file="debug.keystore" -Pandroid.injected.signing.store.password="android" -Pandroid.injected.signing.key.alias="androiddebugkey" -Pandroid.injected.signing.key.password="android"
-
+        mkdir -p /home/runner/.gradle/daemon/9.3.1/
+        keytool -genkey -v -keystore /home/runner/.gradle/daemon/9.3.1/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        gradle assembleDebug
 
 
     - name: Upload Finished APK
