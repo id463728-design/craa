@@ -24,11 +24,21 @@ jobs:
       with:
         gradle-version: '9.3.1'
 
-    - name: Force Drop Keystore to System Daemon and Build APK
+    - name: Force Drop Keystore to All Expected Paths and Build APK
       run: |
+        # 1. Create a clean test credentials file in your project directory
+        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        
+        # 2. Place it in the directory where 'debugConfig' looks
+        cp debug.keystore /home/runner/work/craa/craa/debug.keystore || true
+        
+        # 3. Create the daemon folder and place it where 'externalOverride' looks
         mkdir -p /home/runner/.gradle/daemon/9.3.1/
-        keytool -genkey -v -keystore /home/runner/.gradle/daemon/9.3.1/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        cp debug.keystore /home/runner/.gradle/daemon/9.3.1/debug.keystore || true
+        
+        # 4. Compile the application
         gradle assembleDebug
+
 
 
     - name: Upload Finished APK
